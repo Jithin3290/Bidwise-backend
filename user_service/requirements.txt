@@ -1,4 +1,12 @@
 django>=5.0
 djangorestframework
+djangorestframework-simplejwt
 python-dotenv
 django-cors-headers
+drf-yasg
+celery
+redis
+boto3
+pyotp
+qrcode[pil]
+Pillow
