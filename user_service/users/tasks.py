@@ -332,37 +332,64 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=3)
-def trigger_freelancer_indexing(self, user_id, action='index'):
+@shared_task(bind=True)
+def trigger_freelancer_indexing(self, user_id, action="index"):
     """
-    Async task to trigger AI service indexing
+    Async task to trigger AI service indexing.
+    Safely disabled if AI service is not configured.
     """
-    try:
-        ai_service_url = settings.AI_SCORING_SERVICE_URL
+    ai_service_url = getattr(settings, "AI_SCORING_SERVICE_URL", None)
 
-        if action == 'index':
+    if not ai_service_url:
+        logger.info(
+            "AI_SCORING_SERVICE_URL not configured. "
+            "Skipping freelancer indexing for user %s.",
+            user_id,
+        )
+        return {
+            "status": "skipped",
+            "reason": "AI service not configured",
+            "user_id": user_id,
+        }
+
+    try:
+        if action == "index":
             url = f"{ai_service_url}/api/scoring/index-freelancer/"
-        elif action == 'delete':
+        elif action == "delete":
             url = f"{ai_service_url}/api/scoring/delete-freelancer/"
+        else:
+            raise ValueError(f"Invalid action: {action}")
 
         response = requests.post(
             url,
-            json={'user_id': user_id},
+            json={"user_id": user_id},
             headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {settings.SERVICE_TOKEN}'
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {getattr(settings, 'SERVICE_TOKEN', '')}",
             },
-            timeout=10
+            timeout=10,
         )
 
         if response.status_code == 200:
-            logger.info(f"AI indexing successful for user {user_id}")
-            return {'status': 'success', 'user_id': user_id}
-        else:
-            logger.error(f"AI indexing failed: {response.text}")
-            raise Exception(f"AI service returned {response.status_code}")
+            logger.info("AI indexing successful for user %s", user_id)
+            return {"status": "success", "user_id": user_id}
+
+        logger.warning(
+            "AI indexing failed for user %s. Status=%s Body=%s",
+            user_id,
+            response.status_code,
+            response.text,
+        )
+        return {
+            "status": "failed",
+            "user_id": user_id,
+            "http_status": response.status_code,
+        }
 
     except Exception as exc:
-        logger.error(f"Error in AI indexing task: {exc}")
-        # Retry with exponential backoff
-        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+        logger.exception("Unexpected error in AI indexing task for user %s", user_id)
+        return {
+            "status": "error",
+            "user_id": user_id,
+            "error": str(exc),
+        }
