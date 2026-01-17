@@ -52,6 +52,7 @@ class GoogleLoginView(APIView):
         try:
             # Get the client ID from settings
             client_id = settings.GOOGLE_OAUTH_CLIENT_ID
+            print("GOOGLE CLIENT ID USED:", client_id)
 
 
             # CRITICAL: Actually verify the token and get user info
