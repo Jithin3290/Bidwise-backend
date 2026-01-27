@@ -190,6 +190,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
+    "LEEWAY": 10,
 }
 
 
@@ -249,7 +250,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-AWS_SQS_QUEUE_URL = os.getenv("AWS_SQS_QUEUE_URL", "")
+SQS_QUEUE_URL = os.getenv("AWS_SQS_QUEUE_URL", "")
 
 
 # Logging Configuration

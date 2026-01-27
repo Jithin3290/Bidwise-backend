@@ -32,7 +32,7 @@ Here are some next steps to get you started:
 If you have any questions, feel free to contact our support team.
 
 Best regards,
-The Team
+BidWise Team
         """
 
         send_mail(
@@ -72,7 +72,7 @@ This link will expire in 1 hour.
 If you didn't request this reset, please ignore this email.
 
 Best regards,
-Your App Team
+BidWise
         """
 
         send_mail(
