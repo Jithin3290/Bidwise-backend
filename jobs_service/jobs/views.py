@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import filters, generics, status
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -35,6 +35,7 @@ class JobCategoryListView(generics.ListAPIView):
     queryset = JobCategory.objects.filter(is_active=True)
     serializer_class = JobCategorySerializer
     pagination_class = None
+    permission_classes = [AllowAny]
 
 
 class SkillListView(generics.ListAPIView):
@@ -43,11 +44,13 @@ class SkillListView(generics.ListAPIView):
     filter_backends = [filters.SearchFilter]
     search_fields = ["name", "category"]
     pagination_class = None
+    permission_classes = [AllowAny]
 
 
 class JobListView(generics.ListAPIView):
     serializer_class = JobListSerializer
     pagination_class = CustomPageNumberPagination
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         queryset = Job.objects.filter(status="published") \
@@ -142,6 +145,7 @@ class JobListView(generics.ListAPIView):
 class JobDetailView(generics.RetrieveAPIView):
     serializer_class = JobDetailSerializer
     lookup_field = "id"
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Job.objects.select_related("category").prefetch_related(

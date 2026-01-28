@@ -51,10 +51,13 @@ class StartConversationView(APIView):
             participant_ids.append(user_id)
 
         if conversation_type == 'direct' and len(participant_ids) == 2:
+            # Find existing direct conversation between these users using ConversationMember
             existing = Conversation.objects.filter(
-                participants=participant_ids,
                 conversation_type='direct',
-                is_active=True
+                is_active=True,
+                members__user_id=participant_ids[0]
+            ).filter(
+                members__user_id=participant_ids[1]
             ).first()
             if existing:
                 serializer = ConversationSerializer(existing, context={'request': request})
@@ -84,10 +87,13 @@ class ConversationParticipantsView(APIView):
 
     def get(self, request, conversation_id):
         try:
-            conversation = Conversation.objects.get(
+            # Use ConversationMember to verify access
+            conversation = Conversation.objects.filter(
                 id=conversation_id,
-                participants__contains=[request.user.user_id]
-            )
+                members__user_id=str(request.user.user_id)
+            ).first()
+            if not conversation:
+                raise Conversation.DoesNotExist()
             user_service = UserService()
             participants_data = []
             for participant_id in conversation.participants:
@@ -111,10 +117,13 @@ class UpdateConversationView(APIView):
 
     def patch(self, request, conversation_id):
         try:
-            conversation = Conversation.objects.get(
+            # Use ConversationMember to verify access
+            conversation = Conversation.objects.filter(
                 id=conversation_id,
-                participants__contains=[request.user.user_id]
-            )
+                members__user_id=str(request.user.user_id)
+            ).first()
+            if not conversation:
+                raise Conversation.DoesNotExist()
             if 'title' in request.data:
                 conversation.title = request.data['title']
             if 'is_active' in request.data:
@@ -185,8 +194,9 @@ class SearchMessagesView(APIView):
             return Response({'error': 'Search query required'}, status=status.HTTP_400_BAD_REQUEST)
 
         user_id = str(request.user.user_id)
+        # Use ConversationMember to get user's conversations
         user_conversations = Conversation.objects.filter(
-            participants__contains=[user_id],
+            members__user_id=user_id,
             is_active=True
         )
 
@@ -336,11 +346,11 @@ class ConversationListView(generics.ListAPIView):
     def get_queryset(self):
         user_id = str(self.request.user.user_id)
 
-        # Get conversations where user is a participant
+        # Get conversations where user is a member (SQLite compatible)
         queryset = Conversation.objects.filter(
-            participants__contains=[user_id],
+            members__user_id=user_id,
             is_active=True
-        ).order_by('-last_message_at')
+        ).distinct().order_by('-last_message_at')
 
         # Filter by type
         conversation_type = self.request.query_params.get('type')
@@ -393,7 +403,8 @@ class ConversationDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         user_id = str(self.request.user.user_id)
-        return Conversation.objects.filter(participants__contains=[user_id])
+        # Use ConversationMember to filter (SQLite compatible)
+        return Conversation.objects.filter(members__user_id=user_id)
 
 
 class ConversationMessagesView(generics.ListAPIView):
@@ -407,13 +418,12 @@ class ConversationMessagesView(generics.ListAPIView):
         conversation_id = self.kwargs['conversation_id']
         user_id = str(self.request.user.user_id)
 
-        # Verify user has access to conversation
-        try:
-            conversation = Conversation.objects.get(
-                id=conversation_id,
-                participants__contains=[user_id]
-            )
-        except Conversation.DoesNotExist:
+        # Verify user has access to conversation using ConversationMember
+        conversation = Conversation.objects.filter(
+            id=conversation_id,
+            members__user_id=user_id
+        ).first()
+        if not conversation:
             return Message.objects.none()
 
         return Message.objects.filter(
@@ -432,13 +442,12 @@ class SendMessageView(generics.CreateAPIView):
         conversation_id = self.kwargs['conversation_id']
         user_id = str(self.request.user.user_id)
 
-        # Verify user has access to conversation
-        try:
-            conversation = Conversation.objects.get(
-                id=conversation_id,
-                participants__contains=[user_id]
-            )
-        except Conversation.DoesNotExist:
+        # Verify user has access to conversation using ConversationMember
+        conversation = Conversation.objects.filter(
+            id=conversation_id,
+            members__user_id=user_id
+        ).first()
+        if not conversation:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Access denied to conversation")
 
@@ -469,8 +478,9 @@ class ConversationStatsView(APIView):
     def get(self, request):
         user_id = str(request.user.user_id)
 
+        # Use ConversationMember for counting (SQLite compatible)
         total_conversations = Conversation.objects.filter(
-            participants__contains=[user_id],
+            members__user_id=user_id,
             is_active=True
         ).count()
 
@@ -500,11 +510,12 @@ class MarkConversationReadView(APIView):
     def post(self, request, conversation_id):
         user_id = str(request.user.user_id)
 
-        try:
-            conversation = Conversation.objects.get(
-                id=conversation_id,
-                participants__contains=[user_id]
-            )
+        # Use ConversationMember to verify access
+        conversation = Conversation.objects.filter(
+            id=conversation_id,
+            members__user_id=user_id
+        ).first()
+        if conversation:
 
             unread_messages = Message.objects.filter(
                 conversation=conversation,
@@ -532,7 +543,7 @@ class MarkConversationReadView(APIView):
 
             return Response({'message': 'Conversation marked as read'})
 
-        except Conversation.DoesNotExist:
+        else:
             return Response(
                 {'error': 'Conversation not found'},
                 status=status.HTTP_404_NOT_FOUND

@@ -103,7 +103,7 @@ class JobService:
     """Service to communicate with Jobs microservice"""
 
     def __init__(self):
-        self.base_url = getattr(settings, 'JOBS_SERVICE_URL', 'http://jobs_service:8001')
+        self.base_url = getattr(settings, 'JOBS_SERVICE_URL', 'http://127.0.0.1:8001')
         self.service_token = getattr(settings, 'SERVICE_TOKEN', 'secure-service-token-123')
         self.timeout = 10
 

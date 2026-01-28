@@ -54,10 +54,7 @@ class JobBidsListView(generics.ListAPIView):
         job_service = JobService()
         job_data = job_service.get_job_details(job_id)
         if not job_data:
-            return Response(
-                {"error": "Job not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+           return Response([], status=status.HTTP_200_OK)
 
         # Get bids
         queryset = self.filter_queryset(self.get_queryset())
@@ -100,7 +97,7 @@ class BidDetailView(generics.RetrieveAPIView):
         job_service = JobService()
         job_data = job_service.get_job_details(bid.job_id)
 
-        if user_id not in [bid.freelancer_id, job_data.get('client_id')]:
+        if user_id not in [bid.freelancer_id, job_data.get('client_info', {}).get('id')]:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You don't have permission to view this bid")
 
@@ -113,7 +110,7 @@ class BidDetailView(generics.RetrieveAPIView):
         job_service = JobService()
         job_data = job_service.get_job_details(instance.job_id)
 
-        if request.user.user_id == job_data.get('client_id'):
+        if request.user.user_id == job_data.get('client_info', {}).get('id'):
             track_bid_view(instance, request)
 
             # Mark as viewed by client

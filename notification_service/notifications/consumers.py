@@ -248,13 +248,14 @@ class MessagingConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def verify_conversation_access(self, conversation_id):
         try:
-            conversation = Conversation.objects.get(
+            # Use ConversationMember for SQLite compatibility
+            conversation = Conversation.objects.filter(
                 id=conversation_id,
-                participants__contains=[self.user.user_id],
+                members__user_id=str(self.user.user_id),
                 is_active=True
-            )
-            return True
-        except Conversation.DoesNotExist:
+            ).first()
+            return conversation is not None
+        except Exception:
             return False
 
     @database_sync_to_async
@@ -325,8 +326,9 @@ class MessagingConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_user_conversations(self):
         try:
+            # Use ConversationMember for SQLite compatibility
             conversations = Conversation.objects.filter(
-                participants__contains=[self.user.user_id],
+                members__user_id=str(self.user.user_id),
                 is_active=True
             ).values_list('id', flat=True)
             return [str(c) for c in conversations]

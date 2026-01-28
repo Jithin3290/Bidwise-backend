@@ -42,7 +42,7 @@ urlpatterns = [
     path('health/', health_check, name='health-check'),
 
     # API endpoints (removed namespace to avoid conflict)
-    path('api/bids/', include('bids_service.bids.urls')),
+    path('api/bids/', include('bids.urls')),
 
     # API Documentation
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

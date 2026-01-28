@@ -535,10 +535,10 @@ class CacheWarmupService:
             # Warm up user profile
             self.user_service.get_user_profile(user_id)
 
-            # Warm up user conversations
+            # Warm up user conversations (SQLite compatible)
             from .models import Conversation
             user_conversations = Conversation.objects.filter(
-                participants__contains=[user_id],
+                members__user_id=user_id,
                 is_active=True
             ).values_list('id', flat=True)[:10]  # Top 10 most recent
 
