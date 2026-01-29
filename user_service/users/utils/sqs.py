@@ -14,6 +14,8 @@ def send_to_sqss(task_name, payload):
         "task": task_name,
         "payload": payload,
     }
+  
+
     sqs.send_message(
         QueueUrl=settings.SQS_QUEUE_URL,
         MessageBody=json.dumps(message)

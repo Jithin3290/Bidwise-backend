@@ -24,7 +24,7 @@ class SendEmailVerificationView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            verification_code = user.generate_email_verification_token()
+            verification_code = str(user.generate_email_verification_token())
 
             # Send to SQS with task name and payload
             sqs.send_to_sqss("send_email_verification", {
