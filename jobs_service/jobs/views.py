@@ -104,6 +104,11 @@ class JobListView(generics.ListAPIView):
         if self.request.query_params.get("featured_only", "").lower() == "true":
             queryset = queryset.filter(is_featured=True)
 
+        # Filter by client_id if provided (for inter-service communication)
+        client_id = self.request.query_params.get("client")
+        if client_id:
+            queryset = queryset.filter(client_id=client_id)
+
         ordering = self.request.query_params.get("ordering", "-created_at")
         valid_orderings = [
             "created_at", "-created_at",

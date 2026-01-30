@@ -176,6 +176,15 @@ CORS_ALLOW_HEADERS = [
 # User Service URL for authentication
 USERS_SERVICE_URL = os.getenv('USERS_SERVICE_URL', 'http://localhost:8000')
 
+# Jobs Service URL
+JOBS_SERVICE_URL = os.getenv('JOBS_SERVICE_URL', 'http://localhost:8001')
+
+# Razorpay Configuration
+# Get your keys from: https://dashboard.razorpay.com/app/keys
+# For testing, use Test Mode keys (starts with 'rzp_test_')
+RAZORPAY_KEY_ID = "rzp_test_RnrQ2LvFdfgWaI"
+RAZORPAY_KEY_SECRET = "QWayXrI4StKOIpzt866rMpKU"
+
 
 # Logging Configuration
 LOGGING = {
