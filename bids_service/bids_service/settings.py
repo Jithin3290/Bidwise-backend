@@ -179,6 +179,9 @@ USERS_SERVICE_URL = os.getenv('USERS_SERVICE_URL', 'http://localhost:8000')
 # Jobs Service URL
 JOBS_SERVICE_URL = os.getenv('JOBS_SERVICE_URL', 'http://localhost:8001')
 
+# Notification Service URL
+NOTIFICATION_SERVICE_URL = os.getenv('NOTIFICATION_SERVICE_URL', 'http://localhost:8003')
+
 # Razorpay Configuration
 # Get your keys from: https://dashboard.razorpay.com/app/keys
 # For testing, use Test Mode keys (starts with 'rzp_test_')

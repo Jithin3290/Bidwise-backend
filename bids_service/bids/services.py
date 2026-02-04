@@ -210,7 +210,7 @@ class NotificationServiceClient:
     """Client for communicating with the notification service"""
 
     def __init__(self):
-        self.base_url = 'http://notification_service:8003'
+        self.base_url = getattr(settings, 'NOTIFICATION_SERVICE_URL', 'http://localhost:8003')
         self.service_token = getattr(settings, 'SERVICE_TOKEN', 'secure-service-token-123')
         self.timeout = 10
         self.max_retries = 3
