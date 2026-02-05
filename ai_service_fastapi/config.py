@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
     # API Keys
-    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
     
-    # Database
-    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/bidwise"
+    # Database (using user_service SQLite for development)
+    DATABASE_URL: str = "sqlite:///../user_service/db.sqlite3"
     
     # ChromaDB
     CHROMA_DB_PATH: str = "./chroma_data"
@@ -27,11 +27,11 @@ class Settings(BaseSettings):
     
     # Server
     HOST: str = "0.0.0.0"
-    PORT: int = 8006
+    PORT: int = 8004
     DEBUG: bool = True
     
-    # AI Model
-    AI_MODEL_NAME: str = "gemini-2.0-flash-exp"
+    # AI Model (gemini-pro works with google.generativeai)
+    AI_MODEL_NAME: str = "gemini-pro"
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     
     class Config:

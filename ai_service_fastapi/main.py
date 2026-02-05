@@ -13,6 +13,7 @@ from rabbitmq.connection import connect_rabbitmq, disconnect_rabbitmq
 from rabbitmq.consumer import setup_consumers
 from routes.scoring import router as scoring_router
 from routes.matching import router as matching_router
+from routes.chat import router as chat_router
 
 # Configure logging
 logging.basicConfig(
@@ -121,6 +122,7 @@ app.add_middleware(
 # Include routers
 app.include_router(scoring_router)
 app.include_router(matching_router)
+app.include_router(chat_router)
 
 
 @app.get("/")

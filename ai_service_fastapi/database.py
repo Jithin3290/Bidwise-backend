@@ -1,4 +1,6 @@
 # database.py - Async Database Connection
+#The database.py
+ #file provides async database utilities using the databases library:connect_database()/disconnect_database()- lifecycle management
 
 from databases import Database
 from config import get_settings

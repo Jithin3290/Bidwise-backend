@@ -6,7 +6,7 @@ import json
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 
 from config import get_settings
 from database import fetch_one, fetch_all
@@ -123,6 +123,12 @@ Bio: {bio or ''}
         top_k: int = 10
     ) -> List[Dict]:
         """Find best freelancer matches for a job"""
+        
+        # DEBUG: Log input parameters
+        logger.info(f"=== FIND_BEST_MATCHES DEBUG ===")
+        logger.info(f"Job Description: {job_description[:100]}...")
+        logger.info(f"Required Skills: {required_skills}")
+        logger.info(f"Required Skills Count: {len(required_skills)}")
 
         # Check if collection has data
         collection = self.vectorstore._collection
@@ -254,17 +260,26 @@ Required Skills: {', '.join(required_skills)}
 
     def _calculate_skill_match(self, required: List[str], has: List[str]) -> float:
         """Calculate skill match percentage"""
+        # DEBUG: Log skill comparison
+        logger.debug(f"Skill Match - Required: {required}, Has: {has}")
+        
         if not required:
+            logger.warning("No required skills provided - returning 100% match")
             return 1.0
 
         required_set = set(s.lower().strip() for s in required if s and s.strip())
         has_set = set(s.lower().strip() for s in has if s and s.strip())
+        
+        logger.debug(f"Required Set: {required_set}, Has Set: {has_set}")
 
         if not required_set:
+            logger.warning("Required set is empty after filtering - returning 100% match")
             return 1.0
 
         matched = len(required_set & has_set)
-        return matched / len(required_set)
+        match_percentage = matched / len(required_set)
+        logger.debug(f"Matched: {matched}/{len(required_set)} = {match_percentage:.2%}")
+        return match_percentage
 
     def _get_skill_diff(
         self, required: List[str], has: List[str]
