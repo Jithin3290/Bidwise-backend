@@ -1,4 +1,4 @@
-# routes/chat.py - RAG-Powered AI Chatbot with BidWise Knowledge Base (OpenAI)
+# routes/chat.py - RAG-Powered AI Chatbot with BidWise Knowledge Base (Groq)
 
 import logging
 from typing import Optional, List, Dict
@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 
-from openai import OpenAI
+from groq import Groq
 
 from config import get_settings
 from services.vector_search import get_job_matcher
@@ -55,20 +55,20 @@ else:
 
 
 # -------------------------------------------------------------------
-# OpenAI Client
+# Groq Client
 # -------------------------------------------------------------------
 
-def get_openai_client() -> OpenAI:
+def get_groq_client() -> Groq:
     settings = get_settings()
-    logger.info(f"OpenAI key loaded: {bool(settings.OPENAI_API_KEY)}")
+    logger.info(f"Groq key loaded: {bool(settings.GROQ_API_KEY)}")
 
-    if not settings.OPENAI_API_KEY:
+    if not settings.GROQ_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="OPENAI_API_KEY is not configured"
+            detail="GROQ_API_KEY is not configured"
         )
 
-    return OpenAI(api_key=settings.OPENAI_API_KEY)
+    return Groq(api_key=settings.GROQ_API_KEY)
 
 
 # -------------------------------------------------------------------
@@ -176,11 +176,11 @@ async def chat(
 
         system_prompt = build_system_prompt(request.message, freelancer_context)
 
-        client = get_openai_client()
+        client = get_groq_client()
 
         try:
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": request.message},
@@ -189,10 +189,10 @@ async def chat(
             )
 
             assistant_message = response.choices[0].message.content.strip()
-            logger.info("OpenAI response generated successfully")
+            logger.info("Groq response generated successfully")
 
-        except Exception as openai_error:
-            logger.error(f"OpenAI API error: {openai_error}", exc_info=True)
+        except Exception as groq_error:
+            logger.error(f"Groq API error: {groq_error}", exc_info=True)
             raise HTTPException(
                 status_code=503,
                 detail="AI service temporarily unavailable"
@@ -244,7 +244,7 @@ async def chat_health():
     matcher = get_job_matcher()
     return {
         "status": "healthy",
-        "openai_configured": True,
+        "groq_configured": True,
         "knowledge_base_loaded": bool(KNOWLEDGE_BASE),
         "knowledge_base_size": len(KNOWLEDGE_BASE),
         "indexed_freelancers": matcher.get_collection_stats()["total_indexed"],

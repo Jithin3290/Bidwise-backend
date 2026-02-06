@@ -22,7 +22,8 @@ langchain-core>=0.1.0
 sentence-transformers>=2.2.2
 
 # AI
-google-generativeai>=0.3.2
+groq>=0.4.0
+openai>=1.0.0
 
 # RabbitMQ
 aio-pika>=9.3.0
